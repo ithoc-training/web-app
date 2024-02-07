@@ -1,27 +1,45 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import React from "react";
+import React, {useEffect, useState} from "react";
+import {useKeycloak} from "@react-keycloak/web";
+import {KeycloakProfile} from "keycloak-js";
 
 const Profile = () => {
-    const { user, isAuthenticated, isLoading } = useAuth0();
+    const {keycloak, initialized} = useKeycloak();
 
-    if (isLoading) {
-        return <div>Loading ...</div>;
+    const [profile, setProfile] =
+        useState<KeycloakProfile | null>(null);
+
+    useEffect(() => {
+        if (keycloak?.authenticated) {
+            keycloak.loadUserProfile().then(userProfile => {
+                setProfile(userProfile);
+            }).catch(err => {
+                console.error("Failed to load user profile", err);
+            });
+        }
+    }, [keycloak, keycloak?.authenticated]);
+
+    if (!initialized) {
+        return <div>Loading...</div>;
     }
 
-    if(!isAuthenticated) {
-        return <div>Not authenticated</div>;
-    }
-
-    if(user == undefined) {
-        return <div>user is undefined</div>;
+    if (!keycloak?.authenticated) {
+        return <div>Please log in to view your profile.</div>;
     }
 
     return (
-            <div>
-                <img src={user.picture} alt={user.name} />
-                <h2>{user.name}</h2>
-                <p>{user.email}</p>
-            </div>
+        <div>
+            <h2>User Profile</h2>
+            {profile ? (
+                <div>
+                    <p>Username: {profile.username}</p>
+                    <p>Email: {profile.email}</p>
+                    <p>FirstName: {profile.firstName}</p>
+                    <p>LastName: {profile.lastName}</p>
+                </div>
+            ) : (
+                <p>Loading profile...</p>
+            )}
+        </div>
     );
 };
 

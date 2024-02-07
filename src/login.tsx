@@ -1,10 +1,21 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import React from "react";
+import {useKeycloak} from "@react-keycloak/web";
 
 const LoginButton = () => {
-    const { loginWithRedirect } = useAuth0();
+    const {keycloak, initialized} = useKeycloak();
 
-    return <button onClick={() => loginWithRedirect()}>Log In</button>;
+    if (!initialized) {
+        return <div>Loading ...</div>;
+    }
+
+    return (
+        <div>
+            <div>User is {!keycloak.authenticated ? 'NOT ' : ''}authenticated</div>
+            {keycloak.authenticated && (
+                <button onClick={() => keycloak.logout()}>Logout</button>
+            )}
+        </div>
+    );
 };
 
 export default LoginButton;
